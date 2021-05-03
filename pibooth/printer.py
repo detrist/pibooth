@@ -103,8 +103,9 @@ class Printer(object):
                 factory.save(fp.name)
                 self._conn.printFile(self.name, fp.name, osp.basename(filename), {})
         else:
-            self._conn.printFile(self.name, filename, osp.basename(filename), {})
-        LOGGER.debug("File '%s' sent to the printer", filename)
+            pdf_filename = self.convert_image_to_pdf(filename)
+            self._conn.printFile(self.name, pdf_filename, osp.basename(pdf_filename), {})
+        LOGGER.debug("File '%s' sent to the printer", pdf_filename)
 
     def cancel_all_tasks(self):
         """Cancel all tasks in the queue.
@@ -127,3 +128,22 @@ class Printer(object):
         """
         if self._notifier:
             self._notifier.unsubscribe_all()
+
+    def convert_image_to_pdf(self, filename):
+        """Convert final image to PDF
+        """
+        pdf_filename = filename + '.pdf'
+        image = Image.open(filename)
+
+        wanted_dpi = 300.0
+        #try:
+        #    dpi_x, dpi_y = image.info["dpi"]
+        #except KeyError:
+        #    dpi_x, dpi_y = (wanted_dpi, wanted_dpi)
+            
+        #image.resize((round(image.width*wanted_dpi/dpi_x), round(image.height*wanted_dpi/dpi_y)), resample=Image.LANCZOS)
+
+        #if image.mode == "RGBA":
+        #    image = image.convert("RGB")
+        image.save(pdf_filename, resolution=wanted_dpi)
+        return pdf_filename

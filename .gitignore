@@ -75,3 +75,5 @@ target/
 # pyenv
 .python-version
 
+#Virtual environment
+.venv
