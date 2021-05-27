@@ -92,7 +92,7 @@ class Printer(object):
         LOGGER.debug("File '%s' sent to the printer", filename)
     
     def print_file_rest(self, filename, copies= 1):
-        url = 'http://127.0.0.1:8080/api/v1/printing/'
+        url = 'http://192.168.250.1:8080/api/v1/printing/'
         files = {'file': open(filename, 'rb')}
         
         for i in range(copies):
