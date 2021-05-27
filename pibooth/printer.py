@@ -11,6 +11,7 @@ except ImportError:
 
 import tempfile
 import os.path as osp
+import requests
 
 import pygame
 from PIL import Image
@@ -86,25 +87,17 @@ class Printer(object):
             raise EnvironmentError("No printer found (check config file or CUPS config)")
         if not osp.isfile(filename):
             raise IOError("No such file or directory: {}".format(filename))
-        if self._notifier and not self._notifier.is_subscribed(self._on_event):
-            self._notifier.subscribe(self._on_event, [event.CUPS_EVT_JOB_COMPLETED,
-                                                      event.CUPS_EVT_JOB_CREATED,
-                                                      event.CUPS_EVT_JOB_STOPPED,
-                                                      event.CUPS_EVT_PRINTER_STATE_CHANGED,
-                                                      event.CUPS_EVT_PRINTER_STOPPED])
-
-        if copies > 1:
-            with tempfile.NamedTemporaryFile(suffix=osp.basename(filename)) as fp:
-                picture = Image.open(filename)
-                factory = get_picture_factory((picture,) * copies)
-                # Don't call setup factory hook here, as the selected parameters
-                # are the one necessary to render several pictures on same page.
-                factory.set_margin(2)
-                factory.save(fp.name)
-                self._conn.printFile(self.name, fp.name, osp.basename(filename), {})
-        else:
-            self._conn.printFile(self.name, filename, osp.basename(filename), {})
+        
+        self.print_file_rest(filename, copies)
         LOGGER.debug("File '%s' sent to the printer", filename)
+    
+    def print_file_rest(self, filename, copies= 1):
+        url = 'http://127.0.0.1:8080/api/v1/printing/'
+        files = {'file': open(filename, 'rb')}
+        
+        for i in range(copies):
+            r = requests.post(url, files = files)
+            print(r.status_code)
 
     def cancel_all_tasks(self):
         """Cancel all tasks in the queue.
